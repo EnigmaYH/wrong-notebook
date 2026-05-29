@@ -1,0 +1,18 @@
+{
+  "name": "Smart Wrong Notebook",
+  "short_name": "WrongNB",
+  "description": "AI-powered smart wrong question notebook for students",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
