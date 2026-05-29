@@ -19,10 +19,18 @@ export async function POST(req: Request) {
         const body = await req.json();
         const currentConfig = getAppConfig();
 
-        // Don't save masked keys if they somehow get sent back (for Gemini)
+        // Don't save masked keys if they somehow get sent back
         if (body.gemini?.apiKey === '********') {
-            // 保留原有的 API Key
             body.gemini.apiKey = currentConfig.gemini?.apiKey;
+        }
+        if (body.deepseek?.apiKey === '********') {
+            body.deepseek.apiKey = currentConfig.deepseek?.apiKey;
+        }
+        if (body.xiaomi?.apiKey === '********') {
+            body.xiaomi.apiKey = currentConfig.xiaomi?.apiKey;
+        }
+        if (body.custom?.apiKey === '********') {
+            body.custom.apiKey = currentConfig.custom?.apiKey;
         }
 
         // For OpenAI instances, preserve original keys for masked entries

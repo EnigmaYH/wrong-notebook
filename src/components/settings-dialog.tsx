@@ -475,7 +475,7 @@ export function SettingsDialog() {
         }
     };
 
-    const updateConfig = (section: 'openai' | 'gemini', key: string, value: string) => {
+    const updateConfig = (section: 'openai' | 'gemini' | 'deepseek' | 'xiaomi' | 'custom', key: string, value: string) => {
         if (section === 'gemini') {
             setConfig(prev => ({
                 ...prev,
@@ -625,6 +625,45 @@ export function SettingsDialog() {
                     deploymentName: config.azure.deploymentName,
                     apiVersion: config.azure.apiVersion,
                     model: config.azure.model,
+                    language: language
+                };
+            } else if (config.aiProvider === 'deepseek') {
+                if (!config.deepseek?.apiKey) {
+                    setTestResult({ success: false, textSupport: false, visionSupport: false, textError: t.settings?.ai?.validationApiKeyRequired || 'API Key is required' });
+                    setTesting(false);
+                    return;
+                }
+                requestBody = {
+                    provider: 'deepseek',
+                    apiKey: config.deepseek.apiKey,
+                    baseUrl: config.deepseek.baseUrl,
+                    model: config.deepseek.model,
+                    language: language
+                };
+            } else if (config.aiProvider === 'xiaomi') {
+                if (!config.xiaomi?.apiKey) {
+                    setTestResult({ success: false, textSupport: false, visionSupport: false, textError: t.settings?.ai?.validationApiKeyRequired || 'API Key is required' });
+                    setTesting(false);
+                    return;
+                }
+                requestBody = {
+                    provider: 'xiaomi',
+                    apiKey: config.xiaomi.apiKey,
+                    baseUrl: config.xiaomi.baseUrl,
+                    model: config.xiaomi.model,
+                    language: language
+                };
+            } else if (config.aiProvider === 'custom') {
+                if (!config.custom?.apiKey || !config.custom?.baseUrl) {
+                    setTestResult({ success: false, textSupport: false, visionSupport: false, textError: 'API Key and Base URL are required' });
+                    setTesting(false);
+                    return;
+                }
+                requestBody = {
+                    provider: 'custom',
+                    apiKey: config.custom.apiKey,
+                    baseUrl: config.custom.baseUrl,
+                    model: config.custom.model,
                     language: language
                 };
             } else {
@@ -908,7 +947,7 @@ export function SettingsDialog() {
                                     <Label>{t.settings?.tabs?.ai || "AI Provider"}</Label>
                                     <Select
                                         value={config.aiProvider}
-                                        onValueChange={(val: 'gemini' | 'openai' | 'azure') => setConfig(prev => ({ ...prev, aiProvider: val }))}
+                                        onValueChange={(val: 'gemini' | 'openai' | 'azure' | 'deepseek' | 'xiaomi' | 'custom') => setConfig(prev => ({ ...prev, aiProvider: val }))}
                                     >
                                         <SelectTrigger>
                                             <SelectValue />
@@ -917,6 +956,9 @@ export function SettingsDialog() {
                                             <SelectItem value="gemini">Google Gemini</SelectItem>
                                             <SelectItem value="openai">OpenAI / Compatible</SelectItem>
                                             <SelectItem value="azure">Azure OpenAI</SelectItem>
+                                            <SelectItem value="deepseek">DeepSeek</SelectItem>
+                                            <SelectItem value="xiaomi">Xiaomi MiMo</SelectItem>
+                                            <SelectItem value="custom">Custom / 自定义</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -1149,6 +1191,153 @@ export function SettingsDialog() {
                                                 placeholder="gpt-4o"
                                             />
                                         </div>
+                                    </div>
+                                )}
+
+                                {config.aiProvider === 'deepseek' && (
+                                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                                        <div className="space-y-2">
+                                            <Label>API Key <span className="text-destructive">*</span></Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type={showApiKey ? "text" : "password"}
+                                                    value={config.deepseek?.apiKey || ''}
+                                                    onChange={(e) => setConfig(prev => ({ ...prev, deepseek: { ...prev.deepseek, apiKey: e.target.value } }))}
+                                                    placeholder="sk-..."
+                                                    className={`pr-10 ${!config.deepseek?.apiKey?.trim() ? 'border-destructive' : ''}`}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                                    onClick={() => setShowApiKey(!showApiKey)}
+                                                >
+                                                    {showApiKey ? (
+                                                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                                    ) : (
+                                                        <Eye className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                </Button>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">
+                                                <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                                                    获取 DeepSeek API Key →
+                                                </a>
+                                            </p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Base URL</Label>
+                                            <Input
+                                                value={config.deepseek?.baseUrl || 'https://api.deepseek.com'}
+                                                onChange={(e) => setConfig(prev => ({ ...prev, deepseek: { ...prev.deepseek, baseUrl: e.target.value } }))}
+                                                placeholder="https://api.deepseek.com"
+                                            />
+                                        </div>
+                                        <ModelSelector
+                                            provider="deepseek"
+                                            apiKey={config.deepseek?.apiKey}
+                                            baseUrl={config.deepseek?.baseUrl}
+                                            currentModel={config.deepseek?.model}
+                                            onModelChange={(model) => setConfig(prev => ({ ...prev, deepseek: { ...prev.deepseek, model } }))}
+                                        />
+                                    </div>
+                                )}
+
+                                {config.aiProvider === 'xiaomi' && (
+                                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                                        <div className="space-y-2">
+                                            <Label>API Key <span className="text-destructive">*</span></Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type={showApiKey ? "text" : "password"}
+                                                    value={config.xiaomi?.apiKey || ''}
+                                                    onChange={(e) => setConfig(prev => ({ ...prev, xiaomi: { ...prev.xiaomi, apiKey: e.target.value } }))}
+                                                    placeholder="sk-..."
+                                                    className={`pr-10 ${!config.xiaomi?.apiKey?.trim() ? 'border-destructive' : ''}`}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                                    onClick={() => setShowApiKey(!showApiKey)}
+                                                >
+                                                    {showApiKey ? (
+                                                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                                    ) : (
+                                                        <Eye className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Base URL</Label>
+                                            <Input
+                                                value={config.xiaomi?.baseUrl || 'https://api.xiaomimimo.com/v1'}
+                                                onChange={(e) => setConfig(prev => ({ ...prev, xiaomi: { ...prev.xiaomi, baseUrl: e.target.value } }))}
+                                                placeholder="https://api.xiaomimimo.com/v1"
+                                            />
+                                        </div>
+                                        <ModelSelector
+                                            provider="xiaomi"
+                                            apiKey={config.xiaomi?.apiKey}
+                                            baseUrl={config.xiaomi?.baseUrl}
+                                            currentModel={config.xiaomi?.model}
+                                            onModelChange={(model) => setConfig(prev => ({ ...prev, xiaomi: { ...prev.xiaomi, model } }))}
+                                        />
+                                    </div>
+                                )}
+
+                                {config.aiProvider === 'custom' && (
+                                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700">
+                                            Configure any OpenAI-compatible API provider. Enter your API Key, Base URL, and Model name below.
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>API Key <span className="text-destructive">*</span></Label>
+                                            <div className="relative">
+                                                <Input
+                                                    type={showApiKey ? "text" : "password"}
+                                                    value={config.custom?.apiKey || ''}
+                                                    onChange={(e) => setConfig(prev => ({ ...prev, custom: { ...prev.custom, apiKey: e.target.value } }))}
+                                                    placeholder="sk-..."
+                                                    className={`pr-10 ${!config.custom?.apiKey?.trim() ? 'border-destructive' : ''}`}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                                    onClick={() => setShowApiKey(!showApiKey)}
+                                                >
+                                                    {showApiKey ? (
+                                                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                                    ) : (
+                                                        <Eye className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Base URL <span className="text-destructive">*</span></Label>
+                                            <Input
+                                                value={config.custom?.baseUrl || ''}
+                                                onChange={(e) => setConfig(prev => ({ ...prev, custom: { ...prev.custom, baseUrl: e.target.value } }))}
+                                                placeholder="https://api.your-provider.com/v1"
+                                                className={!config.custom?.baseUrl?.trim() ? 'border-destructive' : ''}
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                Must be an OpenAI-compatible endpoint (e.g. https://api.openai.com/v1, https://api.deepseek.com)
+                                            </p>
+                                        </div>
+                                        <ModelSelector
+                                            provider="custom"
+                                            apiKey={config.custom?.apiKey}
+                                            baseUrl={config.custom?.baseUrl}
+                                            currentModel={config.custom?.model}
+                                            onModelChange={(model) => setConfig(prev => ({ ...prev, custom: { ...prev.custom, model } }))}
+                                        />
                                     </div>
                                 )}
                                 {/* 测试连接和保存按钮 */}

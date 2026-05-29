@@ -84,6 +84,20 @@ export async function GET(req: NextRequest) {
         if (provider === 'gemini') {
             const effectiveBaseUrl = baseUrl || 'https://generativelanguage.googleapis.com';
             models = await fetchGeminiModels(apiKey, effectiveBaseUrl);
+        } else if (provider === 'deepseek') {
+            // DeepSeek 使用 OpenAI 兼容 API 获取模型列表
+            const effectiveBaseUrl = baseUrl || 'https://api.deepseek.com';
+            models = await fetchOpenAIModels(apiKey, effectiveBaseUrl);
+        } else if (provider === 'xiaomi') {
+            // Xiaomi MiMo 使用 OpenAI 兼容 API
+            const effectiveBaseUrl = baseUrl || 'https://api.xiaomimimo.com/v1';
+            models = await fetchOpenAIModels(apiKey, effectiveBaseUrl);
+        } else if (provider === 'custom') {
+            // Custom - 尝试从用户指定的 Base URL 获取模型列表
+            const effectiveBaseUrl = baseUrl || '';
+            if (effectiveBaseUrl) {
+                models = await fetchOpenAIModels(apiKey, effectiveBaseUrl);
+            }
         } else {
             // OpenAI-compatible
             const effectiveBaseUrl = baseUrl || 'https://api.openai.com/v1';

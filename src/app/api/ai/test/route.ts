@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { OpenAIProvider } from '@/lib/ai/openai-provider';
 import { GeminiProvider } from '@/lib/ai/gemini-provider';
 import { AzureOpenAIProvider } from '@/lib/ai/azure-provider';
+import { DeepSeekProvider } from '@/lib/ai/deepseek-provider';
+import { XiaomiProvider } from '@/lib/ai/xiaomi-provider';
 import { createLogger } from '@/lib/logger';
 
 const logger = createLogger('api:ai:test');
@@ -70,7 +72,7 @@ function parseErrorCode(error: unknown): string {
 }
 
 export interface AITestRequest {
-    provider: 'openai' | 'gemini' | 'azure';
+    provider: 'openai' | 'gemini' | 'azure' | 'deepseek' | 'xiaomi' | 'custom';
     apiKey: string;
     baseUrl?: string;
     model?: string;
@@ -157,6 +159,30 @@ export async function POST(request: NextRequest) {
                     visionSupport = true;
                     modelInfo = model || deploymentName;
                 }
+            } else if (provider === 'deepseek') {
+                const deepseek = new DeepSeekProvider({ apiKey, baseUrl, model });
+                const result = await deepseek.analyzeImage(TEST_IMAGE_BASE64, TEST_IMAGE_MIME, language);
+                if (result.questionText || result.analysis) {
+                    textSupport = true;
+                    visionSupport = true;
+                    modelInfo = model || 'deepseek-chat';
+                }
+            } else if (provider === 'xiaomi') {
+                const xiaomi = new XiaomiProvider({ apiKey, baseUrl, model });
+                const result = await xiaomi.analyzeImage(TEST_IMAGE_BASE64, TEST_IMAGE_MIME, language);
+                if (result.questionText || result.analysis) {
+                    textSupport = true;
+                    visionSupport = true;
+                    modelInfo = model || 'mimo-chat';
+                }
+            } else if (provider === 'custom') {
+                const customProvider = new OpenAIProvider({ apiKey, baseUrl, model });
+                const result = await customProvider.analyzeImage(TEST_IMAGE_BASE64, TEST_IMAGE_MIME, language);
+                if (result.questionText || result.analysis) {
+                    textSupport = true;
+                    visionSupport = true;
+                    modelInfo = model || 'custom-model';
+                }
             }
         } catch (error) {
             const errCode = parseErrorCode(error);
@@ -219,6 +245,42 @@ export async function POST(request: NextRequest) {
                     if (result.questionText) {
                         textSupport = true;
                         modelInfo = model || deploymentName;
+                    }
+                } else if (provider === 'deepseek') {
+                    const deepseek = new DeepSeekProvider({ apiKey, baseUrl, model });
+                    const result = await deepseek.generateSimilarQuestion(
+                        '1+1=?',
+                        ['基础算术'],
+                        language,
+                        'easy'
+                    );
+                    if (result.questionText) {
+                        textSupport = true;
+                        modelInfo = model || 'deepseek-chat';
+                    }
+                } else if (provider === 'xiaomi') {
+                    const xiaomi = new XiaomiProvider({ apiKey, baseUrl, model });
+                    const result = await xiaomi.generateSimilarQuestion(
+                        '1+1=?',
+                        ['基础算术'],
+                        language,
+                        'easy'
+                    );
+                    if (result.questionText) {
+                        textSupport = true;
+                        modelInfo = model || 'mimo-chat';
+                    }
+                } else if (provider === 'custom') {
+                    const customProvider = new OpenAIProvider({ apiKey, baseUrl, model });
+                    const result = await customProvider.generateSimilarQuestion(
+                        '1+1=?',
+                        ['基础算术'],
+                        language,
+                        'easy'
+                    );
+                    if (result.questionText) {
+                        textSupport = true;
+                        modelInfo = model || 'custom-model';
                     }
                 }
             } catch (error) {

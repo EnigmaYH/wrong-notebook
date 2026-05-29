@@ -16,7 +16,7 @@ export interface OpenAIInstance {
 }
 
 export interface AppConfig {
-    aiProvider: 'gemini' | 'openai' | 'azure';
+    aiProvider: 'gemini' | 'openai' | 'azure' | 'deepseek' | 'xiaomi' | 'custom';
     allowRegistration?: boolean;
     openai?: {
         instances?: OpenAIInstance[];
@@ -33,6 +33,21 @@ export interface AppConfig {
         deploymentName?: string; // 部署名称
         apiVersion?: string;     // API 版本
         model?: string;          // 显示用模型名
+    };
+    deepseek?: {
+        apiKey?: string;
+        baseUrl?: string;
+        model?: string;
+    };
+    xiaomi?: {
+        apiKey?: string;
+        baseUrl?: string;
+        model?: string;
+    };
+    custom?: {
+        apiKey?: string;
+        baseUrl?: string;
+        model?: string;
     };
     prompts?: {
         analyze?: string;
@@ -88,7 +103,7 @@ function migrateOpenAIConfig(legacy: LegacyOpenAIConfig): AppConfig['openai'] {
 }
 
 const DEFAULT_CONFIG: AppConfig = {
-    aiProvider: (process.env.AI_PROVIDER as 'gemini' | 'openai' | 'azure') || 'gemini',
+    aiProvider: (process.env.AI_PROVIDER as 'gemini' | 'openai' | 'azure' | 'deepseek' | 'xiaomi' | 'custom') || 'gemini',
     allowRegistration: true,
     openai: {
         instances: process.env.OPENAI_API_KEY ? [{
@@ -111,6 +126,21 @@ const DEFAULT_CONFIG: AppConfig = {
         deploymentName: process.env.AZURE_OPENAI_DEPLOYMENT,
         apiVersion: process.env.AZURE_OPENAI_API_VERSION || '2024-02-15-preview',
         model: process.env.AZURE_OPENAI_MODEL || 'gpt-4o',
+    },
+    deepseek: {
+        apiKey: process.env.DEEPSEEK_API_KEY,
+        baseUrl: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
+        model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+    },
+    xiaomi: {
+        apiKey: process.env.XIAOMI_API_KEY,
+        baseUrl: process.env.XIAOMI_BASE_URL || 'https://api.xiaomimimo.com/v1',
+        model: process.env.XIAOMI_MODEL || 'mimo-chat',
+    },
+    custom: {
+        apiKey: process.env.CUSTOM_API_KEY,
+        baseUrl: process.env.CUSTOM_BASE_URL || '',
+        model: process.env.CUSTOM_MODEL || '',
     },
     prompts: {
         analyze: '',
@@ -151,6 +181,9 @@ export function getAppConfig(): AppConfig {
                 },
                 gemini: { ...DEFAULT_CONFIG.gemini, ...userConfig.gemini },
                 azure: { ...DEFAULT_CONFIG.azure, ...userConfig.azure },
+                deepseek: { ...DEFAULT_CONFIG.deepseek, ...userConfig.deepseek },
+                xiaomi: { ...DEFAULT_CONFIG.xiaomi, ...userConfig.xiaomi },
+                custom: { ...DEFAULT_CONFIG.custom, ...userConfig.custom },
                 prompts: { ...DEFAULT_CONFIG.prompts, ...userConfig.prompts },
                 timeouts: { ...DEFAULT_CONFIG.timeouts, ...userConfig.timeouts },
             };
@@ -173,6 +206,9 @@ export function updateAppConfig(newConfig: Partial<AppConfig>) {
         },
         gemini: { ...currentConfig.gemini, ...newConfig.gemini },
         azure: { ...currentConfig.azure, ...newConfig.azure },
+        deepseek: { ...currentConfig.deepseek, ...newConfig.deepseek },
+        xiaomi: { ...currentConfig.xiaomi, ...newConfig.xiaomi },
+        custom: { ...currentConfig.custom, ...newConfig.custom },
         prompts: { ...currentConfig.prompts, ...newConfig.prompts },
         timeouts: { ...currentConfig.timeouts, ...newConfig.timeouts },
     };

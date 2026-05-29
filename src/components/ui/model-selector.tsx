@@ -17,7 +17,7 @@ import { AIModel, ModelsResponse } from "@/types/api";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ModelSelectorProps {
-    provider: 'openai' | 'gemini';
+    provider: 'openai' | 'gemini' | 'deepseek' | 'xiaomi' | 'custom';
     apiKey?: string;
     baseUrl?: string;
     currentModel?: string;
