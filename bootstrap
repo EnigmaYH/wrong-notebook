@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+# SAE Custom Runtime 启动脚本
+echo "Starting Smart Wrong Notebook..."
+
+# 初始化数据库
+npx prisma migrate deploy
+npx prisma db seed
+
+# 启动 Next.js 生产服务器
+exec node node_modules/.bin/next start -p 3000
