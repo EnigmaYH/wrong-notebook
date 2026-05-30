@@ -37,7 +37,7 @@ RUN npx prisma generate \
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN npm run build
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build --no-lint
 
 # Production image, copy all the files and run next
 FROM base AS runner
